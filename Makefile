@@ -1,5 +1,5 @@
 
-OBJS = main.o rowstore.o tuple.o
+OBJS = main.o tuple.o rowstore.o
 EXECUTABLE = main
 CPPFLAGS = -I.
 

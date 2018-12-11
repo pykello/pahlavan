@@ -5,46 +5,44 @@
 #include <vector>
 #include <memory>
 
-template <class resultType>
 class Expr {
 public:
-    virtual resultType eval(const Tuple &tuple) = 0;
+    virtual std::unique_ptr<Datum> eval(const Tuple &tuple) = 0;
 };
 
-template <class constType>
-class ConstExpr: public Expr<constType> {
+class ConstExpr: public Expr {
 public:
-    ConstExpr(constType val): val(val) {}
-    virtual constType eval(const Tuple &tuple) override {
-        return val;
+    ConstExpr(std::unique_ptr<Datum> val): val(std::move(val)) {}
+    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        return val->clone();
     }
 private:
-    constType val;
+    std::unique_ptr<Datum> val;
 };
 
-template <class varType>
-class VarExpr: public Expr<varType> {
+class VarExpr: public Expr {
 public:
     VarExpr(int varIndex): varIndex(varIndex) {}
-    virtual varType eval(const Tuple &tuple) override {
-        return tuple.getAttr<varType>(varIndex);
+    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        return tuple[varIndex]->clone();
     }
 private:
     int varIndex;
 };
 
-template <class resultType>
-class MultExpr: public Expr<resultType> {
+class MultExpr: public Expr {
 public:
-    MultExpr(std::unique_ptr<Expr<resultType>> left,
-             std::unique_ptr<Expr<resultType>> right):
+    MultExpr(std::unique_ptr<Expr> left,
+             std::unique_ptr<Expr> right):
                 left(std::move(left)), right(std::move(right)) {}
 
-    virtual resultType eval(const Tuple &tuple) override {
-        return left->eval(tuple) * right->eval(tuple);
+    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        auto leftResult = left->eval(tuple);
+        auto rightResult = right->eval(tuple);
+        return leftResult->multiply(rightResult.get());
     }
 private:
-    std::unique_ptr<Expr<resultType>> left, right;
+    std::unique_ptr<Expr> left, right;
 };
 
 enum CompareOp {
@@ -55,69 +53,86 @@ enum CompareOp {
     GT
 };
 
-template <class childType>
-class CompareExpr: public Expr<bool> {
+class CompareExpr: public Expr {
 public:
-    CompareExpr(std::unique_ptr<Expr<childType>> left,
-                std::unique_ptr<Expr<childType>> right, CompareOp op):
+    CompareExpr(std::unique_ptr<Expr> left,
+                std::unique_ptr<Expr> right, CompareOp op):
                     left(std::move(left)), right(std::move(right)), op(op) {}
 
-    virtual bool eval(const Tuple &tuple) override {
-        childType lv = left->eval(tuple), rv = right->eval(tuple);
+    virtual std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        auto lv = left->eval(tuple), rv = right->eval(tuple);
+        bool leftIsLess = *lv < *rv;
+        bool rightIsLess = *rv < *lv;
+        bool eq = !leftIsLess && !rightIsLess;
+        bool result = false;
         switch (op) {
             case LT:
-                return lv < rv;
+                result = leftIsLess;
+                break;
             case LTE:
-                return lv <= rv;
+                result = leftIsLess || eq;
+                break;
             case EQ:
-                return lv == rv;
+                result = eq;
+                break;
             case GTE: 
-                return lv >= rv;
+                result = rightIsLess || eq;
+                break;
             case GT:
-                return lv > rv;
+                result = rightIsLess;
+                break;
         }
+        return std::make_unique<BoolDatum>(result);
     }
 private:
-    std::unique_ptr<Expr<childType>> left, right;
+    std::unique_ptr<Expr> left, right;
     CompareOp op;
 };
 
-class AndExpr: public Expr<bool> {
+class AndExpr: public Expr {
 public:
-    AndExpr(std::unique_ptr<Expr<bool>> left, std::unique_ptr<Expr<bool>> right):
+    AndExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right):
         left(std::move(left)), right(std::move(right)) {}
 
-    virtual bool eval(const Tuple &tuple) override {
-        return left->eval(tuple) && right->eval(tuple);
+    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        auto lv = left->eval(tuple), rv = right->eval(tuple);
+        auto *leftBool = static_cast<const BoolDatum *>(lv.get());
+        auto *rightBool = static_cast<const BoolDatum *>(rv.get());
+        return std::make_unique<BoolDatum>(leftBool->value && rightBool->value);
     }
 
 private:
-    std::unique_ptr<Expr<bool>> left, right;
+    std::unique_ptr<Expr> left, right;
 };
 
-class OrExpr: public Expr<bool> {
+class OrExpr: public Expr {
 public:
-    OrExpr(std::unique_ptr<Expr<bool>> left, std::unique_ptr<Expr<bool>> right):
+    OrExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right):
         left(std::move(left)), right(std::move(right)) {}
 
-    virtual bool eval(const Tuple &tuple) override {
-        return left->eval(tuple) || right->eval(tuple);
+    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        auto lv = left->eval(tuple), rv = right->eval(tuple);
+        auto *leftBool = static_cast<const BoolDatum *>(lv.get());
+        auto *rightBool = static_cast<const BoolDatum *>(rv.get());
+        return std::make_unique<BoolDatum>(leftBool->value || rightBool->value);
     }
 
 private:
-    std::unique_ptr<Expr<bool>> left, right;
+    std::unique_ptr<Expr> left, right;
 };
 
-class NotExpr: public Expr<bool> {
+class NotExpr: public Expr {
 public:
-    NotExpr(std::unique_ptr<Expr<bool>> child): child(std::move(child)) {}
+    NotExpr(std::unique_ptr<Expr> child): child(std::move(child)) {}
 
-    virtual bool eval(const Tuple &tuple) override {
-        return !child->eval(tuple);
+    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+        auto cv = child->eval(tuple);
+        auto *childBool = static_cast<const BoolDatum *>(cv.get());
+        return std::make_unique<BoolDatum>(!childBool->value);
     }
 
 private:
-    std::unique_ptr<Expr<bool>> child;
+    std::unique_ptr<Expr> child;
 };
 
 #endif

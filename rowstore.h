@@ -17,64 +17,45 @@ public:
     virtual Schema getSchema() const = 0;
 };
 
-class AggState {};
-
-template <class inputType, class resultType>
 class AggFunc {
 public:
-    virtual std::unique_ptr<AggState> init() = 0;
-    virtual void aggregate(AggState *state, const inputType &next) = 0;
-    virtual resultType finalize(AggState *state) = 0;
+    virtual std::unique_ptr<Datum> init() = 0;
+    virtual void aggregate(Datum &state, const Datum &next) = 0;
+    virtual std::unique_ptr<Datum> finalize(Datum &state) = 0;
 };
 
 template <class inputType>
-class AggSumState: public AggState {
-public:
-    inputType sum = 0;
+class AggSum: public AggFunc {
+    std::unique_ptr<Datum> init() override;
+    void aggregate(Datum &state, const Datum &next) override;
+    std::unique_ptr<Datum> finalize(Datum &state) override;
 };
 
-template <class inputType>
-class AggSum: public AggFunc<inputType, inputType> {
-    std::unique_ptr<AggState> init() override;
-    void aggregate(AggState *state, const inputType &next) override;
-    inputType finalize(AggState *state) override;
-};
-
-class AggFuncCallBase {
+class AggFuncCall{
 public:
-    virtual std::unique_ptr<AggState> init() = 0;
-    virtual void aggregate(AggState *state, const Tuple& next) = 0;
-    virtual void addResult(AggState *state, Tuple &tuple) = 0;
-    virtual ColumnType getType() const = 0;
-};
-
-template <class inputType, class resultType>
-class AggFuncCall: public AggFuncCallBase {
-public:
-    AggFuncCall(std::unique_ptr<AggFunc<inputType, resultType>> func,
-                std::unique_ptr<Expr<inputType>> expr):
+    AggFuncCall(std::unique_ptr<AggFunc> func,
+                std::unique_ptr<Expr> expr):
         func(std::move(func)), expr(std::move(expr)) {}
 
-    std::unique_ptr<AggState> init() override;
-    void aggregate(AggState *state, const Tuple& next) override;
-    void addResult(AggState *state, Tuple &tuple) override;
-    ColumnType getType() const override;
+    std::unique_ptr<Datum> init();
+    void aggregate(Datum &state, const Tuple& next);
+    void addResult(Datum &state, Tuple &tuple);
 private:
-    std::unique_ptr<AggFunc<inputType, resultType>> func;
-    std::unique_ptr<Expr<inputType>> expr;
+    std::unique_ptr<AggFunc> func;
+    std::unique_ptr<Expr> expr;
 };
 
 class ExecAgg: public ExecNode {
 public:
     ExecAgg(std::unique_ptr<ExecNode> child, std::vector<int> groupBy,
-            std::vector<std::unique_ptr<AggFuncCallBase>> aggs):
+            std::vector<std::unique_ptr<AggFuncCall>> aggs):
                 child(std::move(child)), groupBy(groupBy), aggs(std::move(aggs)) {}
     std::vector<Tuple> eval() override;
     Schema getSchema() const override;
 private:
     std::unique_ptr<ExecNode> child;
     std::vector<int> groupBy;
-    std::vector<std::unique_ptr<AggFuncCallBase>> aggs;
+    std::vector<std::unique_ptr<AggFuncCall>> aggs;
 };
 
 #endif
