@@ -13,6 +13,26 @@ public:
     virtual std::unique_ptr<Datum> clone() const = 0;
     virtual std::unique_ptr<Datum> multiply(const Datum &other) const = 0;
     virtual std::string toString() const = 0;
+
+    virtual bool operator==(const Datum &other) const {
+        return !(*this < other) && !(other < *this);
+    }
+
+    virtual bool operator!=(const Datum &other) const {
+        return !(*this == other);
+    }
+
+    virtual bool operator>=(const Datum &other) const {
+        return !(*this < other);
+    }
+
+    virtual bool operator>(const Datum &other) const {
+        return !(*this < other) && !(*this == other);
+    }
+
+    virtual bool operator<=(const Datum &other) const {
+        return *this < other || *this == other;
+    }
 };
 
 template <class T>

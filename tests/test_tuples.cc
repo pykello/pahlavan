@@ -17,6 +17,12 @@ TEST_CASE( "Int datums can be compared", "[tuples]" ) {
     REQUIRE ( !(*a < *a) );
     REQUIRE ( !(*b < *a) );
     REQUIRE ( !(*b < *b) );
+
+    REQUIRE ( *a <= *b );
+    REQUIRE ( *a == *a );
+    REQUIRE ( *b == *b );
+    REQUIRE ( *b >= *a );
+    REQUIRE ( *b > *a );
 }
 
 TEST_CASE( "Int datums can be cloned", "[tuples]" ) {
@@ -28,4 +34,15 @@ TEST_CASE( "Int datums can be cloned", "[tuples]" ) {
 TEST_CASE( "Int datums can be stringified", "[tuples]" ) {
     DatumP a = make_unique<IntDatum>(11);
     REQUIRE ( a->toString() == "11" );
+}
+
+TEST_CASE( "Bool datums work properly", "[tuples]" ) {
+    DatumP t = make_unique<BoolDatum>(true);
+    DatumP f = make_unique<BoolDatum>(false);
+    REQUIRE ( *t != *f );
+    REQUIRE ( *f != *t );
+    REQUIRE ( *t == *t );
+    REQUIRE ( *f == *f );
+    REQUIRE ( *(f->clone()) == *f );
+    REQUIRE ( *(t->clone()) == *t );
 }
