@@ -128,10 +128,27 @@ TEST_CASE( "tupleFromString, test all data types", "[tuples]" ) {
     REQUIRE ( fieldValue<bool>(tuple1, 5) == true );
 }
 
-TEST_CASE ( "tupleToString", "[tuples]" ) {
+TEST_CASE ( "tupleToString, basic test", "[tuples]" ) {
     Schema schema { TYPE_INT, TYPE_TEXT, TYPE_DECIMAL, TYPE_BIGINT, TYPE_DATE,
                     TYPE_BOOL };
     string tupleStr = "1,hey there!,1e+10,12345678901,2012-04-23,1";
     TupleP tuple = tupleFromString(tupleStr, schema);
     REQUIRE ( tupleToString(*tuple) == tupleStr );
+}
+
+TEST_CASE ( "tuple (de)serialization, escaping", "[tuples]" ) {
+    Schema schema { TYPE_INT, TYPE_TEXT, TYPE_INT };
+    string tupleStr1 = "1,hadi\\,salam\\\\,12";
+    TupleP tuple1 = tupleFromString(tupleStr1, schema);
+    REQUIRE ( fieldValue<int>(tuple1, 0) == 1 );
+    REQUIRE ( fieldValue<string>(tuple1, 1) == "hadi,salam\\" );
+    REQUIRE ( fieldValue<int>(tuple1, 2) == 12 );
+    REQUIRE ( tupleToString(*tuple1) == tupleStr1 );
+    string tupleStr2 = "\\2|\\||32";
+    TupleP tuple2 = tupleFromString(tupleStr2, schema, '|');
+    REQUIRE ( fieldValue<int>(tuple2, 0) == 2 );
+    REQUIRE ( fieldValue<string>(tuple2, 1) == "|" );
+    REQUIRE ( fieldValue<int>(tuple2, 2) == 32 );
+    REQUIRE ( tupleToString(*tuple2, '|') == "2|\\||32" );
+
 }
