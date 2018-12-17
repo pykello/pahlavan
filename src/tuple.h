@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <schema.h>
 
 class Datum {
 public:
@@ -73,8 +74,10 @@ public:
 
 typedef NumericDatum<int> IntDatum;
 typedef NumericDatum<double> DoubleDatum;
+typedef NumericDatum<long long> BigIntDatum;
 typedef BoxedDatum<bool> BoolDatum;
 typedef BoxedDatum<std::string> StringDatum;
+typedef BoxedDatum<Date> DateDatum;
 typedef std::unique_ptr<Datum> DatumP;
 typedef std::vector<DatumP> Tuple;
 typedef std::unique_ptr<Tuple> TupleP;
@@ -94,5 +97,6 @@ struct compareTupleP {
 };
 
 std::string tupleToString(const Tuple& tuple, char delimiter=',');
+TupleP tupleFromString(const std::string &s, const Schema &schema, char delimiter=',');
 
 #endif
