@@ -127,3 +127,11 @@ TEST_CASE( "tupleFromString, test all data types", "[tuples]" ) {
     REQUIRE ( fieldValue<Date>(tuple1, 4) == Date(2012, 4, 23) );
     REQUIRE ( fieldValue<bool>(tuple1, 5) == true );
 }
+
+TEST_CASE ( "tupleToString", "[tuples]" ) {
+    Schema schema { TYPE_INT, TYPE_TEXT, TYPE_DECIMAL, TYPE_BIGINT, TYPE_DATE,
+                    TYPE_BOOL };
+    string tupleStr = "1,hey there!,1e+10,12345678901,2012-04-23,1";
+    TupleP tuple = tupleFromString(tupleStr, schema);
+    REQUIRE ( tupleToString(*tuple) == tupleStr );
+}
