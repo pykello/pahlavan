@@ -3,7 +3,8 @@ OBJS = src/tuple.o src/rowstore.o src/datetime.o
 EXECUTABLE = main
 TEST_EXECUTABLE = run_tests
 TEST_OBJS = tests/tests_main.o \
-			tests/test_tuples.o 
+			tests/test_tuples.o \
+			tests/test_exprs.o
 
 all: $(OBJS) src/main.cc 
 	g++ $(CPPFLAGS) $(OBJS) src/main.cc -o $(EXECUTABLE)
