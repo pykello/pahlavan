@@ -72,6 +72,7 @@ public:
 };
 
 typedef NumericDatum<int> IntDatum;
+typedef NumericDatum<double> DoubleDatum;
 typedef BoxedDatum<bool> BoolDatum;
 typedef BoxedDatum<std::string> StringDatum;
 typedef std::unique_ptr<Datum> DatumP;

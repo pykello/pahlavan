@@ -57,3 +57,13 @@ TEST_CASE( "String datums work properly", "[tuples]" ) {
     REQUIRE ( foo->toString() == "foo" );
     REQUIRE ( bar->toString() == "bar" );
 }
+
+TEST_CASE( "Double datums work properly", "[tuples]" ) {
+    DatumP a = make_unique<DoubleDatum>(-0.1);
+    DatumP b = make_unique<DoubleDatum>(2.32);
+    REQUIRE ( *a != *b );
+    REQUIRE ( *a < *b );
+    REQUIRE ( *b > *a );
+    REQUIRE ( *(a->clone()) == *a );
+    REQUIRE ( *(b->clone()) == *b );
+}
