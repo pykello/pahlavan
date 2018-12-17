@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include <tuple.h>
 #include <memory>
+#include <climits>
 using namespace std;
 
 TEST_CASE( "Int datums can be multiplied", "[tuples]" ) {
@@ -64,6 +65,18 @@ TEST_CASE( "Double datums work properly", "[tuples]" ) {
     REQUIRE ( *a != *b );
     REQUIRE ( *a < *b );
     REQUIRE ( *b > *a );
+    REQUIRE ( *(a->clone()) == *a );
+    REQUIRE ( *(b->clone()) == *b );
+}
+
+TEST_CASE( "BigInt datums work properly", "[tuples]" ) {
+    DatumP a = make_unique<BigIntDatum>(LLONG_MIN);
+    DatumP b = make_unique<BigIntDatum>(LLONG_MAX);
+    DatumP c = make_unique<BigIntDatum>(-2202);
+    REQUIRE ( *a != *b );
+    REQUIRE ( *a < *b );
+    REQUIRE ( *b > *a );
+    REQUIRE ( (*c > *a && *c < *b) );
     REQUIRE ( *(a->clone()) == *a );
     REQUIRE ( *(b->clone()) == *b );
 }
