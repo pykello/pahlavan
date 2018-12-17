@@ -86,23 +86,11 @@ std::vector<TupleP> ExecAgg::eval() {
     return result;
 }
 
-Schema ExecAgg::getSchema() const {
-    Schema schema;
-    // TODO
-    return schema;
-}
-
 TupleP ExecAgg::getGroupKey(const Tuple &tuple) {
     TupleP key = make_unique<Tuple>();
     for (int idx: groupBy)
         key->push_back(tuple[idx]->clone());
     return key;
-}
-
-Schema ExecScan::getSchema() const {
-    Schema schema;
-    // TODO
-    return schema;
 }
 
 vector<TupleP> ExecScan::eval() {

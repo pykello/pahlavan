@@ -14,7 +14,6 @@ struct RowStore {
 class ExecNode {
 public:
     virtual std::vector<TupleP> eval() = 0;
-    virtual Schema getSchema() const = 0;
 };
 
 class AggFunc {
@@ -51,7 +50,6 @@ public:
             std::vector<std::unique_ptr<AggFuncCall>> aggs):
                 child(std::move(child)), groupBy(groupBy), aggs(std::move(aggs)) {}
     std::vector<TupleP> eval() override;
-    Schema getSchema() const override;
 private:
     std::unique_ptr<ExecNode> child;
     std::vector<int> groupBy;
@@ -64,7 +62,6 @@ class ExecScan: public ExecNode {
 public:
     ExecScan(std::vector<TupleP> tuples): tuples(std::move(tuples)) {}
     std::vector<TupleP> eval() override;
-    Schema getSchema() const override;
 private:
     std::vector<TupleP> tuples;
 };
