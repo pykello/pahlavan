@@ -44,6 +44,22 @@ public:
 
 typedef NumericDatum<int> IntDatum;
 typedef BoxedDatum<bool> BoolDatum;
-typedef std::vector<std::unique_ptr<Datum>> Tuple;
+typedef std::unique_ptr<Datum> DatumP;
+typedef std::vector<DatumP> Tuple;
+typedef std::unique_ptr<Tuple> TupleP;
+
+struct compareTupleP {
+    bool operator()(const TupleP &a, const TupleP &b) const {
+        for (size_t i = 0; i < a->size() && i < b->size(); i++) {
+            Datum *datumA = (*a)[i].get();
+            Datum *datumB = (*b)[i].get();
+            if (*datumA < *datumB)
+                return true;
+            if (*datumB < *datumA)
+                return false;
+        }
+        return a->size() < b-> size();
+    }
+};
 
 #endif

@@ -13,22 +13,22 @@ struct RowStore {
 
 class ExecNode {
 public:
-    virtual std::vector<Tuple> eval() = 0;
+    virtual std::vector<TupleP> eval() = 0;
     virtual Schema getSchema() const = 0;
 };
 
 class AggFunc {
 public:
-    virtual std::unique_ptr<Datum> init() = 0;
+    virtual DatumP init() = 0;
     virtual void aggregate(Datum &state, const Datum &next) = 0;
-    virtual std::unique_ptr<Datum> finalize(Datum &state) = 0;
+    virtual DatumP finalize(Datum &state) = 0;
 };
 
 template <class inputType>
 class AggSum: public AggFunc {
-    std::unique_ptr<Datum> init() override;
+    DatumP init() override;
     void aggregate(Datum &state, const Datum &next) override;
-    std::unique_ptr<Datum> finalize(Datum &state) override;
+    DatumP finalize(Datum &state) override;
 };
 
 class AggFuncCall{
@@ -37,7 +37,7 @@ public:
                 std::unique_ptr<Expr> expr):
         func(std::move(func)), expr(std::move(expr)) {}
 
-    std::unique_ptr<Datum> init();
+    DatumP init();
     void aggregate(Datum &state, const Tuple& next);
     void addResult(Datum &state, Tuple &tuple);
 private:
@@ -50,12 +50,23 @@ public:
     ExecAgg(std::unique_ptr<ExecNode> child, std::vector<int> groupBy,
             std::vector<std::unique_ptr<AggFuncCall>> aggs):
                 child(std::move(child)), groupBy(groupBy), aggs(std::move(aggs)) {}
-    std::vector<Tuple> eval() override;
+    std::vector<TupleP> eval() override;
     Schema getSchema() const override;
 private:
     std::unique_ptr<ExecNode> child;
     std::vector<int> groupBy;
     std::vector<std::unique_ptr<AggFuncCall>> aggs;
+
+    TupleP getGroupKey(const Tuple &tuple);
+};
+
+class ExecScan: public ExecNode {
+public:
+    ExecScan(std::vector<TupleP> tuples): tuples(std::move(tuples)) {}
+    std::vector<TupleP> eval() override;
+    Schema getSchema() const override;
+private:
+    std::vector<TupleP> tuples;
 };
 
 #endif
