@@ -1,5 +1,5 @@
 CPPFLAGS = -Isrc -Ilib
-OBJS = src/tuple.o src/rowstore.o
+OBJS = src/tuple.o src/rowstore.o src/datetime.o
 EXECUTABLE = main
 TEST_EXECUTABLE = run_tests
 TEST_OBJS = tests/tests_main.o \

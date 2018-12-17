@@ -5,17 +5,9 @@
 
 struct Date {
     int year, month, day;
-    bool operator<(const Date &b) const {
-        if (year != b.year)
-            return year < b.year;
-        if (month != b.month)
-            return month < b.month;
-        return day < b.day;
-    }
-    friend std::ostream &operator<<(std::ostream &output, const Date &d) { 
-        output << d.year << "-" << d.month << "-" << d.day;
-        return output;            
-    }
+    Date(int year, int month, int day): year(year), month(month), day(day) {}
+    bool operator<(const Date &b) const;
+    friend std::ostream &operator<<(std::ostream &output, const Date &d);
 };
 
 #endif

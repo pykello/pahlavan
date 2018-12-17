@@ -80,3 +80,15 @@ TEST_CASE( "BigInt datums work properly", "[tuples]" ) {
     REQUIRE ( *(a->clone()) == *a );
     REQUIRE ( *(b->clone()) == *b );
 }
+
+TEST_CASE( "Date datums work properly", "[tuples]" ) {
+    DatumP a = make_unique<DateDatum>(Date(2012,1,1));
+    DatumP b = make_unique<DateDatum>(Date(2013,11,21));
+    REQUIRE ( *a != * b );
+    REQUIRE ( *a < *b );
+    REQUIRE ( *b > *a );
+    REQUIRE ( *(a->clone()) == *a );
+    REQUIRE ( *(b->clone()) == *b );
+    REQUIRE ( a->toString() == "2012-01-01" );
+    REQUIRE ( b->toString() == "2013-11-21" );
+}
