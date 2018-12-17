@@ -4,12 +4,15 @@
 #include <vector>
 #include <exception>
 #include <memory>
+#include <string>
+#include <sstream>
 
 class Datum {
 public:
     virtual bool operator<(const Datum &other) const = 0;
     virtual std::unique_ptr<Datum> clone() const = 0;
     virtual std::unique_ptr<Datum> multiply(const Datum *other) const = 0;
+    virtual std::string toString() const = 0;
 };
 
 template <class T>
@@ -28,6 +31,12 @@ public:
 
     virtual std::unique_ptr<Datum> multiply(const Datum *other) const override {
         throw;
+    }
+
+    virtual std::string toString() const override {
+        std::ostringstream sstream;
+        sstream << value;
+        return sstream.str();
     }
 };
 
@@ -61,5 +70,7 @@ struct compareTupleP {
         return a->size() < b-> size();
     }
 };
+
+std::string tupleToString(const Tuple& tuple, char delimiter=',');
 
 #endif

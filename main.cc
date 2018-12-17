@@ -25,9 +25,10 @@ int main() {
     int t1_values[] = {1, 2,
                        1, 3,
                        2, 1,
-                       2, 10};
+                       2, 10,
+                       3, 0};
     unique_ptr<ExecNode> scanNode =
-        make_unique<ExecScan>(createIntTable(4, 2, t1_values));
+        make_unique<ExecScan>(createIntTable(5, 2, t1_values));
     vector<int> groupBy { 0 };
     unique_ptr<AggFuncCall> sumFuncCall =
         make_unique<AggFuncCall>(
@@ -39,6 +40,9 @@ int main() {
     unique_ptr<ExecNode> aggNode =
         make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
     vector<TupleP> result = aggNode->eval();
-    cout << result.size() << endl;
+    cout << "Result Size: " << result.size() << endl;
+    for (const TupleP &tuple: result) {
+        cout << tupleToString(*tuple) << endl;
+    }
     return 0;
 }

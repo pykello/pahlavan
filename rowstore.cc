@@ -18,7 +18,8 @@ DatumP AggSum<inputType>::init() {
 template <class inputType>
 void AggSum<inputType>::aggregate(Datum &state, const Datum &next) {
     auto numericState = static_cast<NumericDatum<inputType> *>(&state);
-    numericState->value++;
+    auto *nextNumber = static_cast<const NumericDatum<inputType> *>(&next);
+    numericState->value += nextNumber->value;
 }
 
 template <class inputType>
@@ -80,6 +81,7 @@ std::vector<TupleP> ExecAgg::eval() {
             Datum &state = *((*(p.second))[i]);
             aggs[i]->addResult(state, *resultTuple);
         }
+        result.push_back(move(resultTuple));
     }
     return result;
 }
