@@ -73,6 +73,7 @@ public:
 
 typedef NumericDatum<int> IntDatum;
 typedef BoxedDatum<bool> BoolDatum;
+typedef BoxedDatum<std::string> StringDatum;
 typedef std::unique_ptr<Datum> DatumP;
 typedef std::vector<DatumP> Tuple;
 typedef std::unique_ptr<Tuple> TupleP;

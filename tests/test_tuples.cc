@@ -46,3 +46,14 @@ TEST_CASE( "Bool datums work properly", "[tuples]" ) {
     REQUIRE ( *(f->clone()) == *f );
     REQUIRE ( *(t->clone()) == *t );
 }
+
+TEST_CASE( "String datums work properly", "[tuples]" ) {
+    DatumP foo = make_unique<StringDatum>("foo");
+    DatumP bar = make_unique<StringDatum>("bar");
+    REQUIRE ( *foo != *bar );
+    REQUIRE ( *foo == *foo );
+    REQUIRE ( *(foo->clone()) == *foo );
+    REQUIRE ( *(bar->clone()) == *bar );
+    REQUIRE ( foo->toString() == "foo" );
+    REQUIRE ( bar->toString() == "bar" );
+}
