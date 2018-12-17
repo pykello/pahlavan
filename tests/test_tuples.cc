@@ -93,17 +93,6 @@ TEST_CASE( "Date datums work properly", "[tuples]" ) {
     REQUIRE ( b->toString() == "2013-11-21" );
 }
 
-template <class valueType>
-valueType datumValue(const Datum &d) {
-    auto boxed = static_cast<const BoxedDatum<valueType> &>(d);
-    return boxed.value;
-}
-
-template <class valueType>
-valueType fieldValue(const TupleP &tuple, int idx) {
-    return datumValue<valueType>(*((*tuple)[idx]));
-}
-
 TEST_CASE( "tupleFromString, basic test", "[tuples]" ) {
     Schema schema1 { TYPE_INT, TYPE_TEXT };
     

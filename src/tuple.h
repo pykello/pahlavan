@@ -96,6 +96,17 @@ struct compareTupleP {
     }
 };
 
+template <class valueType>
+inline valueType datumValue(const Datum &d) {
+    auto boxed = static_cast<const BoxedDatum<valueType> &>(d);
+    return boxed.value;
+}
+
+template <class valueType>
+inline valueType fieldValue(const TupleP &tuple, int idx) {
+    return datumValue<valueType>(*((*tuple)[idx]));
+}
+
 std::string tupleToString(const Tuple& tuple, char delimiter=',');
 TupleP tupleFromString(const std::string &s, const Schema &schema, char delimiter=',');
 
