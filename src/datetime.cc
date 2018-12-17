@@ -11,6 +11,11 @@ bool Date::operator<(const Date &b) const
     return day < b.day;
 }
 
+bool Date::operator==(const Date &b) const
+{
+    return year == b.year && month == b.month && day == b.day;
+}
+
 ostream &operator<<(std::ostream &output, const Date &d) {
     output << setfill('0') << setw(4) << d.year << "-";
     output << setfill('0') << setw(2) << d.month << "-";

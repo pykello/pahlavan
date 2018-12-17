@@ -92,3 +92,38 @@ TEST_CASE( "Date datums work properly", "[tuples]" ) {
     REQUIRE ( a->toString() == "2012-01-01" );
     REQUIRE ( b->toString() == "2013-11-21" );
 }
+
+template <class valueType>
+valueType datumValue(const Datum &d) {
+    auto boxed = static_cast<const BoxedDatum<valueType> &>(d);
+    return boxed.value;
+}
+
+template <class valueType>
+valueType fieldValue(const TupleP &tuple, int idx) {
+    return datumValue<valueType>(*((*tuple)[idx]));
+}
+
+TEST_CASE( "tupleFromString, basic test", "[tuples]" ) {
+    Schema schema1 { TYPE_INT, TYPE_TEXT };
+    
+    TupleP tuple1 = tupleFromString("1,hey there!", schema1);
+    REQUIRE ( fieldValue<int>(tuple1, 0) == 1 );
+    REQUIRE ( fieldValue<string>(tuple1, 1) == "hey there!" );
+    
+    TupleP tuple2 = tupleFromString("2147483647, Q~~~Q ", schema1);
+    REQUIRE ( fieldValue<int>(tuple2, 0) == 2147483647 );
+    REQUIRE ( fieldValue<string>(tuple2, 1) == " Q~~~Q " );
+}
+
+TEST_CASE( "tupleFromString, test all data types", "[tuples]" ) {
+    Schema schema1 { TYPE_INT, TYPE_TEXT, TYPE_DECIMAL, TYPE_BIGINT, TYPE_DATE,
+                     TYPE_BOOL };
+    TupleP tuple1 = tupleFromString("1,hey there!,1e10,12345678901,2012-04-23,true", schema1);
+    REQUIRE ( fieldValue<int>(tuple1, 0) == 1 );
+    REQUIRE ( fieldValue<string>(tuple1, 1) == "hey there!" );
+    REQUIRE ( fieldValue<double>(tuple1, 2) == 1e10 );
+    REQUIRE ( fieldValue<long long>(tuple1, 3) == 12345678901 );
+    REQUIRE ( fieldValue<Date>(tuple1, 4) == Date(2012, 4, 23) );
+    REQUIRE ( fieldValue<bool>(tuple1, 5) == true );
+}

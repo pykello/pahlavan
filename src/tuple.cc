@@ -64,6 +64,7 @@ static vector<string> tokenize(const string &s, char delimiter) {
         }
     }
     result.push_back(current);
+    return result;
 }
 
 static DatumP datumFromString(const string &s, ColumnType type) {
@@ -91,7 +92,7 @@ static bool boolFromString(const string &s) {
 }
 
 static Date dateFromString(const string &s) {
-    Date result;
+    Date result(0, 0, 0);
     vector<string> tokens = tokenize(s, '-');
     result.year = atoi(tokens[0].c_str());
     result.month = atoi(tokens[1].c_str());
