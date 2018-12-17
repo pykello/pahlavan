@@ -1,10 +1,10 @@
 
-OBJS = main.o tuple.o rowstore.o
+OBJS = src/tuple.o src/rowstore.o
 EXECUTABLE = main
-CPPFLAGS = -I.
+CPPFLAGS = -Isrc -Ilib
 
-all: $(OBJS)
-	g++ $(OBJS) -o $(EXECUTABLE)
+all: $(OBJS) src/main.cc 
+	g++ $(CPPFLAGS) $(OBJS) src/main.cc -o $(EXECUTABLE)
 
 clean:
 	rm -rf $(OBJS) $(EXECUTABLE)
