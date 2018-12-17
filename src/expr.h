@@ -39,7 +39,7 @@ public:
     std::unique_ptr<Datum> eval(const Tuple &tuple) override {
         auto leftResult = left->eval(tuple);
         auto rightResult = right->eval(tuple);
-        return leftResult->multiply(rightResult.get());
+        return leftResult->multiply(*rightResult);
     }
 private:
     std::unique_ptr<Expr> left, right;

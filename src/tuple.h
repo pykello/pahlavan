@@ -11,7 +11,7 @@ class Datum {
 public:
     virtual bool operator<(const Datum &other) const = 0;
     virtual std::unique_ptr<Datum> clone() const = 0;
-    virtual std::unique_ptr<Datum> multiply(const Datum *other) const = 0;
+    virtual std::unique_ptr<Datum> multiply(const Datum &other) const = 0;
     virtual std::string toString() const = 0;
 };
 
@@ -29,7 +29,7 @@ public:
         return std::make_unique<BoxedDatum<T>>(value);
     }
 
-    virtual std::unique_ptr<Datum> multiply(const Datum *other) const override {
+    virtual std::unique_ptr<Datum> multiply(const Datum &other) const override {
         throw;
     }
 
@@ -45,9 +45,9 @@ class NumericDatum: public BoxedDatum<T> {
 public:
     NumericDatum(T value): BoxedDatum<T>(value) {}
     
-    std::unique_ptr<Datum> multiply(const Datum *other) const override {
-        auto otherNumeric = static_cast<const NumericDatum<T> *>(other);
-        return std::make_unique<NumericDatum<T>>(BoxedDatum<T>::value * otherNumeric->value);
+    std::unique_ptr<Datum> multiply(const Datum &other) const override {
+        auto otherNumeric = static_cast<const NumericDatum<T> &>(other);
+        return std::make_unique<NumericDatum<T>>(BoxedDatum<T>::value * otherNumeric.value);
     }
 };
 
