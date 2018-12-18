@@ -46,6 +46,7 @@ TEST_CASE ( "ScanNode", "[rowstore]" ) {
 TEST_CASE ( "Aggregate Sum(int), a column", "[rowstore]" ) {
     auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
 
+    /* group by first column */
     vector<int> groupBy { 0 };
 
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
@@ -63,7 +64,8 @@ TEST_CASE ( "Aggregate Sum(int), a column", "[rowstore]" ) {
 
 TEST_CASE ( "Aggregate Sum(int), whole table as a group", "[rowstore]" ) {
     auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
-  
+
+    /* group by empty tuple, so whole table is a single group */
     vector<int> groupBy {};
 
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
@@ -80,14 +82,15 @@ TEST_CASE ( "Aggregate Sum(int), whole table as a group", "[rowstore]" ) {
 
 TEST_CASE ( "Aggregate Sum(int), a constant", "[rowstore]" ) {
     auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
-   
+
+    /* group by first column */
     vector<int> groupBy { 0 };
-  
+
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
     aggFuncCalls.push_back(AggSum<int>::makeCall(ConstExpr::makeInt(1)));
-  
+
     auto aggNode = make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
-  
+
     vector<TupleP> result = aggNode->eval();
 
     REQUIRE ( result.size() == 3 );
