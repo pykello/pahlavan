@@ -113,3 +113,73 @@ TEST_CASE ( "CompareExpr", "[exprs]" ) {
     );
     REQUIRE ( datumValue<bool>(*e5->eval(tuple)) == false );
 }
+
+TEST_CASE ( "AndExpr", "[exprs]" ) {
+    Tuple tuple;
+
+    unique_ptr<Expr> e1 = make_unique<AndExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true))
+    );
+    REQUIRE ( datumValue<bool>(*e1->eval(tuple)) == true );
+
+    unique_ptr<Expr> e2 = make_unique<AndExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false))
+    );
+    REQUIRE ( datumValue<bool>(*e2->eval(tuple)) == false );
+
+    unique_ptr<Expr> e3 = make_unique<AndExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true))
+    );
+    REQUIRE ( datumValue<bool>(*e3->eval(tuple)) == false );
+
+    unique_ptr<Expr> e4 = make_unique<AndExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false))
+    );
+    REQUIRE ( datumValue<bool>(*e4->eval(tuple)) == false );
+}
+
+TEST_CASE ( "OrExpr", "[exprs]" ) {
+    Tuple tuple;
+
+    unique_ptr<Expr> e1 = make_unique<OrExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true))
+    );
+    REQUIRE ( datumValue<bool>(*e1->eval(tuple)) == true );
+
+    unique_ptr<Expr> e2 = make_unique<OrExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false))
+    );
+    REQUIRE ( datumValue<bool>(*e2->eval(tuple)) == true );
+
+    unique_ptr<Expr> e3 = make_unique<OrExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true))
+    );
+    REQUIRE ( datumValue<bool>(*e3->eval(tuple)) == true );
+
+    unique_ptr<Expr> e4 = make_unique<OrExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false)),
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false))
+    );
+    REQUIRE ( datumValue<bool>(*e4->eval(tuple)) == false );
+}
+
+TEST_CASE ( "NotExpr", "[exprs]" ) {
+    Tuple tuple;
+
+    unique_ptr<Expr> e1 = make_unique<NotExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(true))
+    );
+    REQUIRE ( datumValue<bool>(*e1->eval(tuple)) == false );
+
+    unique_ptr<Expr> e2 = make_unique<NotExpr>(
+        make_unique<ConstExpr>(make_unique<BoolDatum>(false))
+    );
+    REQUIRE ( datumValue<bool>(*e2->eval(tuple)) == true );
+}
