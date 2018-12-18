@@ -66,4 +66,15 @@ private:
     std::vector<TupleP> tuples;
 };
 
+class ExecFilter: public ExecNode {
+public:
+    ExecFilter(std::unique_ptr<ExecNode> child,
+               std::unique_ptr<Expr> expr):
+                    child(std::move(child)), expr(std::move(expr)) {}
+    std::vector<TupleP> eval() override;
+private:
+    std::unique_ptr<ExecNode> child;
+    std::unique_ptr<Expr> expr;
+};
+
 #endif

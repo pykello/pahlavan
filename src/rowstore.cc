@@ -93,6 +93,7 @@ TupleP ExecAgg::getGroupKey(const Tuple &tuple) {
     return key;
 }
 
+/* ExecScan */
 vector<TupleP> ExecScan::eval() {
     vector<TupleP> result;
     for (const TupleP &tuple: tuples) {
@@ -102,5 +103,18 @@ vector<TupleP> ExecScan::eval() {
         }
         result.push_back(move(resultTuple));
     }
+    return result;
+}
+
+/* ExecFilter */
+vector<TupleP> ExecFilter::eval() {
+    vector<TupleP> result;
+    for (TupleP &tuple: child->eval()) {
+        unique_ptr<Datum> exprResult = expr->eval(*tuple);
+        auto exprResultBool = static_cast<const BoolDatum *>(exprResult.get());
+        if (exprResultBool->value) {
+            result.push_back(move(tuple));
+        }
+    } 
     return result;
 }
