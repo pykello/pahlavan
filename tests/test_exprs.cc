@@ -32,3 +32,23 @@ TEST_CASE ( "ConstExpr", "[exprs]" ) {
     unique_ptr<Expr> e7 = make_unique<ConstExpr>(make_unique<DateDatum>(Date(2017,1,13)));
     REQUIRE ( datumValue<Date>(*e7->eval(tuple)) == Date(2017, 1, 13) );
 }
+
+TEST_CASE ( "VarExpr", "[exprs]" ) {
+    Tuple tuple;
+    tuple.push_back(make_unique<IntDatum>(383));
+    tuple.push_back(make_unique<StringDatum>("hey there"));
+    tuple.push_back(make_unique<DateDatum>(Date(1992, 05, 18)));
+    tuple.push_back(make_unique<BoolDatum>(true));
+
+    unique_ptr<Expr> e1 = make_unique<VarExpr>(0);
+    REQUIRE ( datumValue<int>(*e1->eval(tuple)) == 383 );
+
+    unique_ptr<Expr> e2 = make_unique<VarExpr>(1);
+    REQUIRE ( datumValue<string>(*e2->eval(tuple)) == "hey there" );
+
+    unique_ptr<Expr> e3 = make_unique<VarExpr>(2);
+    REQUIRE ( datumValue<Date>(*e3->eval(tuple)) == Date(1992, 5, 18) );
+
+    unique_ptr<Expr> e4 = make_unique<VarExpr>(3);
+    REQUIRE ( datumValue<bool>(*e4->eval(tuple)) == true );
+}
