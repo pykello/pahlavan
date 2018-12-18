@@ -52,3 +52,25 @@ TEST_CASE ( "VarExpr", "[exprs]" ) {
     unique_ptr<Expr> e4 = make_unique<VarExpr>(3);
     REQUIRE ( datumValue<bool>(*e4->eval(tuple)) == true );
 }
+
+TEST_CASE ( "MultExpr", "[exprs]" ) {
+    Tuple tuple;
+    tuple.push_back(make_unique<IntDatum>(12));
+    tuple.push_back(make_unique<IntDatum>(13));
+
+    unique_ptr<Expr> e1 = make_unique<MultExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(2)),
+        make_unique<ConstExpr>(make_unique<IntDatum>(3))
+    );
+    REQUIRE ( datumValue<int>(*e1->eval(tuple)) == 6 );
+    
+    unique_ptr<Expr> e2 = make_unique<MultExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(7)),
+        make_unique<MultExpr>(
+            make_unique<VarExpr>(0),
+            make_unique<VarExpr>(1)
+        )
+    );
+
+    REQUIRE ( datumValue<int>(*e2->eval(tuple)) == 1092 );
+}

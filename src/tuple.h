@@ -65,10 +65,14 @@ template <class T>
 class NumericDatum: public BoxedDatum<T> {
 public:
     NumericDatum(T value): BoxedDatum<T>(value) {}
-    
-    std::unique_ptr<Datum> multiply(const Datum &other) const override {
+
+    virtual std::unique_ptr<Datum> clone() const override {
+        return std::make_unique<NumericDatum<T>>(this->value);
+    }
+
+    virtual std::unique_ptr<Datum> multiply(const Datum &other) const override {
         auto otherNumeric = static_cast<const NumericDatum<T> &>(other);
-        return std::make_unique<NumericDatum<T>>(BoxedDatum<T>::value * otherNumeric.value);
+        return std::make_unique<NumericDatum<T>>(NumericDatum<T>::value * otherNumeric.value);
     }
 };
 
