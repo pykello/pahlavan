@@ -54,7 +54,7 @@ TEST_CASE ( "Aggregate Sum(int), a column", "[rowstore]" ) {
         make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
     vector<int> groupBy { 0 };
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
-    aggFuncCalls.push_back(sumFuncCall<int>(1));
+    aggFuncCalls.push_back(AggSum<int>::makeCall(VarExpr::make(1)));
     unique_ptr<ExecNode> aggNode =
         make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
     vector<TupleP> result = aggNode->eval();
@@ -70,8 +70,8 @@ TEST_CASE ( "Aggregate Sum(int), whole table as a group", "[rowstore]" ) {
         make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
     vector<int> groupBy {};
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
-    aggFuncCalls.push_back(sumFuncCall<int>(0));
-    aggFuncCalls.push_back(sumFuncCall<int>(1));
+    aggFuncCalls.push_back(AggSum<int>::makeCall(VarExpr::make(0)));
+    aggFuncCalls.push_back(AggSum<int>::makeCall(VarExpr::make(1)));
     unique_ptr<ExecNode> aggNode =
         make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
     vector<TupleP> result = aggNode->eval();
@@ -85,9 +85,7 @@ TEST_CASE ( "Aggregate Sum(int), a constant", "[rowstore]" ) {
         make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
     vector<int> groupBy { 0 };
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
-    aggFuncCalls.push_back(make_unique<AggFuncCall>(
-                            make_unique<AggSum<int>>(),
-                            make_unique<ConstExpr>(make_unique<IntDatum>(1))));
+    aggFuncCalls.push_back(AggSum<int>::makeCall(ConstExpr::makeInt(1)));
     unique_ptr<ExecNode> aggNode =
         make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
     vector<TupleP> result = aggNode->eval();

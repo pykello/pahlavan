@@ -16,6 +16,10 @@ public:
     std::unique_ptr<Datum> eval(const Tuple &tuple) override {
         return val->clone();
     }
+
+    static std::unique_ptr<ConstExpr> makeInt(int value) {
+        return std::make_unique<ConstExpr>(std::make_unique<IntDatum>(value));
+    }
 private:
     std::unique_ptr<Datum> val;
 };
@@ -25,6 +29,10 @@ public:
     VarExpr(int varIndex): varIndex(varIndex) {}
     std::unique_ptr<Datum> eval(const Tuple &tuple) override {
         return tuple[varIndex]->clone();
+    }
+
+    static std::unique_ptr<VarExpr> make(int attr) {
+        return std::make_unique<VarExpr>(attr);
     }
 private:
     int varIndex;

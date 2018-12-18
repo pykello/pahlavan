@@ -23,13 +23,6 @@ public:
     virtual DatumP finalize(Datum &state) = 0;
 };
 
-template <class inputType>
-class AggSum: public AggFunc {
-    DatumP init() override;
-    void aggregate(Datum &state, const Datum &next) override;
-    DatumP finalize(Datum &state) override;
-};
-
 class AggFuncCall{
 public:
     AggFuncCall(std::unique_ptr<AggFunc> func,
@@ -42,6 +35,20 @@ public:
 private:
     std::unique_ptr<AggFunc> func;
     std::unique_ptr<Expr> expr;
+};
+
+template <class inputType>
+class AggSum: public AggFunc {
+public:
+    DatumP init() override;
+    void aggregate(Datum &state, const Datum &next) override;
+    DatumP finalize(Datum &state) override;
+
+    static std::unique_ptr<AggFuncCall> makeCall(std::unique_ptr<Expr> expr) {
+        return std::make_unique<AggFuncCall>(
+                    std::make_unique<AggSum<inputType>>(),
+                    std::move(expr));
+    }
 };
 
 class ExecAgg: public ExecNode {
