@@ -93,6 +93,13 @@ public:
         }
         return std::make_unique<BoolDatum>(result);
     }
+
+    static std::unique_ptr<CompareExpr> make(std::unique_ptr<Expr> left,
+                                             std::unique_ptr<Expr> right,
+                                             CompareOp op)
+    {
+        return std::make_unique<CompareExpr>(std::move(left), std::move(right), op);
+    }
 private:
     std::unique_ptr<Expr> left, right;
     CompareOp op;

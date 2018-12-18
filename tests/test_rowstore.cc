@@ -30,7 +30,7 @@ vector<TupleP> createIntTable(size_t rows, size_t cols, const int *values) {
     return result;
 }
 
-TEST_CASE ( "ScanNode", "[rowstore]" ) {
+TEST_CASE ( "ExecScan", "[rowstore]" ) {
     auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
 
     vector<TupleP> result = scanNode->eval();
@@ -97,4 +97,18 @@ TEST_CASE ( "Aggregate Sum(int), a constant", "[rowstore]" ) {
     REQUIRE ( (fieldValue<int>(result[0], 0) == 1 && fieldValue<int>(result[0], 1) == 2) );
     REQUIRE ( (fieldValue<int>(result[1], 0) == 2 && fieldValue<int>(result[1], 1) == 2) );
     REQUIRE ( (fieldValue<int>(result[2], 0) == 3 && fieldValue<int>(result[2], 1) == 1) );
+}
+
+TEST_CASE ( "ExecFilter", "[rowstore]" ) {
+    auto filterNode = make_unique<ExecFilter>(
+        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1)),
+        CompareExpr::make(VarExpr::make(0), ConstExpr::makeInt(2), EQ)
+    );
+
+    vector<TupleP> result = filterNode->eval();
+
+    REQUIRE ( result.size() == 2 );
+    REQUIRE ( (fieldValue<int>(result[0], 0) == 2 && fieldValue<int>(result[0], 1) == 1) );
+    REQUIRE ( (fieldValue<int>(result[1], 0) == 2 && fieldValue<int>(result[1], 1) == 10) );
+
 }
