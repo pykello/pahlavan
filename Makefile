@@ -4,7 +4,8 @@ EXECUTABLE = main
 TEST_EXECUTABLE = run_tests
 TEST_OBJS = tests/tests_main.o \
 			tests/test_tuples.o \
-			tests/test_exprs.o
+			tests/test_exprs.o \
+			tests/test_rowstore.o
 
 all: $(OBJS) src/main.cc 
 	g++ $(CPPFLAGS) $(OBJS) src/main.cc -o $(EXECUTABLE)
