@@ -74,3 +74,42 @@ TEST_CASE ( "MultExpr", "[exprs]" ) {
 
     REQUIRE ( datumValue<int>(*e2->eval(tuple)) == 1092 );
 }
+
+TEST_CASE ( "CompareExpr", "[exprs]" ) {
+    Tuple tuple;
+
+    unique_ptr<Expr> e1 = make_unique<CompareExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(2)),
+        make_unique<ConstExpr>(make_unique<IntDatum>(3)),
+        LT
+    );
+    REQUIRE ( datumValue<bool>(*e1->eval(tuple)) == true );
+
+    unique_ptr<Expr> e2 = make_unique<CompareExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(2)),
+        make_unique<ConstExpr>(make_unique<IntDatum>(3)),
+        GT
+    );
+    REQUIRE ( datumValue<bool>(*e2->eval(tuple)) == false );
+
+    unique_ptr<Expr> e3 = make_unique<CompareExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(2)),
+        make_unique<ConstExpr>(make_unique<IntDatum>(3)),
+        LTE
+    );
+    REQUIRE ( datumValue<bool>(*e3->eval(tuple)) == true );
+
+    unique_ptr<Expr> e4 = make_unique<CompareExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(2)),
+        make_unique<ConstExpr>(make_unique<IntDatum>(3)),
+        EQ
+    );
+    REQUIRE ( datumValue<bool>(*e4->eval(tuple)) == false );
+
+    unique_ptr<Expr> e5 = make_unique<CompareExpr>(
+        make_unique<ConstExpr>(make_unique<IntDatum>(2)),
+        make_unique<ConstExpr>(make_unique<IntDatum>(3)),
+        GTE
+    );
+    REQUIRE ( datumValue<bool>(*e5->eval(tuple)) == false );
+}
