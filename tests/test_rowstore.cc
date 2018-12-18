@@ -30,17 +30,11 @@ vector<TupleP> createIntTable(size_t rows, size_t cols, const int *values) {
     return result;
 }
 
-template<class inputType>
-unique_ptr<AggFuncCall> sumFuncCall(int attribute) {
-    return make_unique<AggFuncCall>(
-            make_unique<AggSum<inputType>>(),
-            make_unique<VarExpr>(attribute));
-}
-
 TEST_CASE ( "ScanNode", "[rowstore]" ) {
-    unique_ptr<ExecNode> scanNode =
-        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+    auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+
     vector<TupleP> result = scanNode->eval();
+
     REQUIRE ( result.size() == rows_1 );
     for (size_t r = 0; r < rows_1; r++) {
         for (size_t c = 0; c < cols_1; c++) {
@@ -50,13 +44,15 @@ TEST_CASE ( "ScanNode", "[rowstore]" ) {
 }
 
 TEST_CASE ( "Aggregate Sum(int), a column", "[rowstore]" ) {
-    unique_ptr<ExecNode> scanNode =
-        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+    auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+
     vector<int> groupBy { 0 };
+
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
     aggFuncCalls.push_back(AggSum<int>::makeCall(VarExpr::make(1)));
-    unique_ptr<ExecNode> aggNode =
-        make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+
+    auto aggNode = make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+
     vector<TupleP> result = aggNode->eval();
 
     REQUIRE ( result.size() == 3 );
@@ -66,14 +62,16 @@ TEST_CASE ( "Aggregate Sum(int), a column", "[rowstore]" ) {
 }
 
 TEST_CASE ( "Aggregate Sum(int), whole table as a group", "[rowstore]" ) {
-    unique_ptr<ExecNode> scanNode =
-        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+    auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+  
     vector<int> groupBy {};
+
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
     aggFuncCalls.push_back(AggSum<int>::makeCall(VarExpr::make(0)));
     aggFuncCalls.push_back(AggSum<int>::makeCall(VarExpr::make(1)));
-    unique_ptr<ExecNode> aggNode =
-        make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+
+    auto aggNode = make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+
     vector<TupleP> result = aggNode->eval();
 
     REQUIRE ( result.size() == 1 );
@@ -81,13 +79,15 @@ TEST_CASE ( "Aggregate Sum(int), whole table as a group", "[rowstore]" ) {
 }
 
 TEST_CASE ( "Aggregate Sum(int), a constant", "[rowstore]" ) {
-    unique_ptr<ExecNode> scanNode =
-        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+    auto scanNode = make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+   
     vector<int> groupBy { 0 };
+  
     vector<unique_ptr<AggFuncCall>> aggFuncCalls;
     aggFuncCalls.push_back(AggSum<int>::makeCall(ConstExpr::makeInt(1)));
-    unique_ptr<ExecNode> aggNode =
-        make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+  
+    auto aggNode = make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+  
     vector<TupleP> result = aggNode->eval();
 
     REQUIRE ( result.size() == 3 );
