@@ -30,6 +30,13 @@ vector<TupleP> createIntTable(size_t rows, size_t cols, const int *values) {
     return result;
 }
 
+template<class inputType>
+unique_ptr<AggFuncCall> sumFuncCall(int attribute) {
+    return make_unique<AggFuncCall>(
+            make_unique<AggSum<inputType>>(),
+            make_unique<VarExpr>(attribute));
+}
+
 TEST_CASE ( "ScanNode", "[rowstore]" ) {
     unique_ptr<ExecNode> scanNode =
         make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
@@ -40,4 +47,20 @@ TEST_CASE ( "ScanNode", "[rowstore]" ) {
             REQUIRE ( fieldValue<int>(result[r], c) == testdata_1[r * cols_1 + c] );
         }
     }
+}
+
+TEST_CASE ( "Aggregate Sum(int)", "[rowstore]" ) {
+    unique_ptr<ExecNode> scanNode =
+        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+    vector<int> groupBy { 0 };
+    vector<unique_ptr<AggFuncCall>> aggFuncCalls;
+    aggFuncCalls.push_back(sumFuncCall<int>(1));
+    unique_ptr<ExecNode> aggNode =
+        make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+    vector<TupleP> result = aggNode->eval();
+
+    REQUIRE ( result.size() == 3 );
+    REQUIRE ( (fieldValue<int>(result[0], 0) == 1 && fieldValue<int>(result[0], 1) == 5) );
+    REQUIRE ( (fieldValue<int>(result[1], 0) == 2 && fieldValue<int>(result[1], 1) == 11) );
+    REQUIRE ( (fieldValue<int>(result[2], 0) == 3 && fieldValue<int>(result[2], 1) == 0) );
 }
