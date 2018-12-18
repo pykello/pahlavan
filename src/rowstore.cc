@@ -118,3 +118,16 @@ vector<TupleP> ExecFilter::eval() {
     } 
     return result;
 }
+
+/* ExecProject */
+vector<TupleP> ExecProject::eval() {
+    vector<TupleP> result;
+    for (TupleP &tuple: child->eval()) {
+        TupleP resultTuple = make_unique<Tuple>();
+        for (const auto &expr: exprs) {
+            resultTuple->push_back(expr->eval(*tuple));
+        }
+        result.push_back(move(resultTuple));
+    } 
+    return result;
+}

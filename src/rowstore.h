@@ -84,4 +84,15 @@ private:
     std::unique_ptr<Expr> expr;
 };
 
+class ExecProject: public ExecNode {
+public:
+    ExecProject(std::unique_ptr<ExecNode> child,
+                std::vector<std::unique_ptr<Expr>> exprs):
+                    child(std::move(child)), exprs(std::move(exprs)) {}
+    std::vector<TupleP> eval() override;
+private:
+    std::unique_ptr<ExecNode> child;
+    std::vector<std::unique_ptr<Expr>> exprs;
+};
+
 #endif
