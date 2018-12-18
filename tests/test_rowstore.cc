@@ -49,7 +49,7 @@ TEST_CASE ( "ScanNode", "[rowstore]" ) {
     }
 }
 
-TEST_CASE ( "Aggregate Sum(int)", "[rowstore]" ) {
+TEST_CASE ( "Aggregate Sum(int), a column", "[rowstore]" ) {
     unique_ptr<ExecNode> scanNode =
         make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
     vector<int> groupBy { 0 };
@@ -63,4 +63,19 @@ TEST_CASE ( "Aggregate Sum(int)", "[rowstore]" ) {
     REQUIRE ( (fieldValue<int>(result[0], 0) == 1 && fieldValue<int>(result[0], 1) == 5) );
     REQUIRE ( (fieldValue<int>(result[1], 0) == 2 && fieldValue<int>(result[1], 1) == 11) );
     REQUIRE ( (fieldValue<int>(result[2], 0) == 3 && fieldValue<int>(result[2], 1) == 0) );
+}
+
+TEST_CASE ( "Aggregate Sum(int), whole table as a group", "[rowstore]" ) {
+    unique_ptr<ExecNode> scanNode =
+        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1));
+    vector<int> groupBy {};
+    vector<unique_ptr<AggFuncCall>> aggFuncCalls;
+    aggFuncCalls.push_back(sumFuncCall<int>(0));
+    aggFuncCalls.push_back(sumFuncCall<int>(1));
+    unique_ptr<ExecNode> aggNode =
+        make_unique<ExecAgg>(move(scanNode), groupBy, move(aggFuncCalls)); 
+    vector<TupleP> result = aggNode->eval();
+
+    REQUIRE ( result.size() == 1 );
+    REQUIRE ( (fieldValue<int>(result[0], 0) == 9 && fieldValue<int>(result[0], 1) == 16) );
 }
