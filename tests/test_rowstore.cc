@@ -112,3 +112,23 @@ TEST_CASE ( "ExecFilter", "[rowstore]" ) {
     REQUIRE ( (fieldValue<int>(result[0], 0) == 2 && fieldValue<int>(result[0], 1) == 1) );
     REQUIRE ( (fieldValue<int>(result[1], 0) == 2 && fieldValue<int>(result[1], 1) == 10) );
 }
+
+TEST_CASE ( "ExecProject", "[rowstore]" ) {
+    /* attrs[1], 2 * attrs[0] */
+    std::vector<std::unique_ptr<Expr>> exprs;
+    exprs.push_back(VarExpr::make(1));
+    exprs.push_back(MultExpr::make(ConstExpr::makeInt(2), VarExpr::make(0)));
+
+    auto projectNode = make_unique<ExecProject>(
+        make_unique<ExecScan>(createIntTable(rows_1, cols_1, testdata_1)),
+        move(exprs)
+    );
+
+    vector<TupleP> result = projectNode->eval();
+
+    REQUIRE ( result.size() == rows_1 );
+    for (size_t r = 0; r < rows_1; r++) {
+        REQUIRE ( fieldValue<int>(result[r], 0) == testdata_1[r * 2 + 1] );
+        REQUIRE ( fieldValue<int>(result[r], 1) == 2 * testdata_1[r * 2] );
+    }
+}

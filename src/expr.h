@@ -50,6 +50,11 @@ public:
         std::unique_ptr<Datum> result = leftResult->multiply(*rightResult);
         return result;
     }
+
+    static std::unique_ptr<MultExpr> make(std::unique_ptr<Expr> left,
+                                          std::unique_ptr<Expr> right) {
+        return std::make_unique<MultExpr>(std::move(left), std::move(right));
+    }
 private:
     std::unique_ptr<Expr> left, right;
 };
