@@ -8,6 +8,8 @@ using namespace std;
 
 /* explicit template instantiations */
 template class AggSum<int>;
+template class AggSum<double>;
+template class AggSum<long long>;
 
 /* AggSum */
 template <class inputType>

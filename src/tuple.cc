@@ -35,6 +35,15 @@ TupleP tupleFromString(const string &s, const Schema &schema, char delimiter) {
     return result;
 }
 
+vector<TupleP> parseTuples(const string* data, int row_count,
+                           const Schema &schema, char delimiter)
+{
+    vector<TupleP> result;
+    for (size_t i = 0; i < row_count; i++)
+        result.push_back(tupleFromString(data[i], schema, delimiter));
+    return result;
+}
+
 static string escapeString(const string &s, char delimiter) {
     string result;
     for (char c: s) {

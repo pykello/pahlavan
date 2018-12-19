@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <schema.h>
+#include <iomanip>
 
 class Datum {
 public:
@@ -56,6 +57,8 @@ public:
 
     virtual std::string toString() const override {
         std::ostringstream sstream;
+        sstream << std::fixed << std::showpoint;
+        sstream << std::setprecision(2);
         sstream << value;
         return sstream.str();
     }
@@ -113,5 +116,7 @@ inline valueType fieldValue(const TupleP &tuple, int idx) {
 
 std::string tupleToString(const Tuple& tuple, char delimiter=',');
 TupleP tupleFromString(const std::string &s, const Schema &schema, char delimiter=',');
+std::vector<TupleP> parseTuples(const std::string* data, int row_count,
+                                const Schema &schema, char delimiter=',');
 
 #endif

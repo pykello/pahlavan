@@ -20,6 +20,15 @@ public:
     static std::unique_ptr<ConstExpr> makeInt(int value) {
         return std::make_unique<ConstExpr>(std::make_unique<IntDatum>(value));
     }
+
+    static std::unique_ptr<ConstExpr> makeDecimal(double value) {
+        return std::make_unique<ConstExpr>(std::make_unique<DoubleDatum>(value));
+    }
+
+    template <class valueType>
+    static std::unique_ptr<ConstExpr> makeBoxed(valueType value) {
+        return std::make_unique<ConstExpr>(std::make_unique<BoxedDatum<valueType>>(value));
+    }
 private:
     std::unique_ptr<Datum> val;
 };
@@ -120,6 +129,12 @@ public:
         auto *leftBool = static_cast<const BoolDatum *>(lv.get());
         auto *rightBool = static_cast<const BoolDatum *>(rv.get());
         return std::make_unique<BoolDatum>(leftBool->value && rightBool->value);
+    }
+
+    static std::unique_ptr<AndExpr> make(std::unique_ptr<Expr> left,
+                                         std::unique_ptr<Expr> right)
+    {
+        return std::make_unique<AndExpr>(std::move(left), std::move(right));
     }
 
 private:
