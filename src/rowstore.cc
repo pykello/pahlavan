@@ -97,15 +97,7 @@ TupleP ExecAgg::getGroupKey(const Tuple &tuple) {
 
 /* ExecScan */
 vector<TupleP> ExecScan::eval() {
-    vector<TupleP> result;
-    for (const TupleP &tuple: tuples) {
-        TupleP resultTuple = make_unique<Tuple>();
-        for (const DatumP &datum: *tuple) {
-            resultTuple->push_back(datum->clone());
-        }
-        result.push_back(move(resultTuple));
-    }
-    return result;
+    return move(tuples);
 }
 
 /* ExecFilter */

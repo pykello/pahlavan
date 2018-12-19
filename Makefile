@@ -1,4 +1,4 @@
-CPPFLAGS = -Isrc -Ilib
+CPPFLAGS = -Isrc -Ilib -O3
 OBJS = src/tuple.o src/rowstore.o src/datetime.o
 EXECUTABLE = main
 TEST_EXECUTABLE = run_tests
