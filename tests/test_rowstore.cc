@@ -169,7 +169,7 @@ const int l_extendedprice = 5;
 const int l_discount = 6;
 const int l_shipdate = 10;
 
-TEST_CASE ( "TPCH6", "[rowstore]" ) {
+TEST_CASE ( "TPCH Query 6", "[rowstore]" ) {
     auto scanNode = make_unique<ExecScan>(
         parseTuples(lineitem_sample, lineitem_rows, lineitem_schema, '|'));
     /* l_shipdate >= '1994-01-01' */
