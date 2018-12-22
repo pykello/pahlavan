@@ -44,6 +44,13 @@ vector<TupleP> parseTuples(const string* data, int row_count,
     return result;
 }
 
+TupleP cloneTuple(const Tuple &tuple) {
+    TupleP result = make_unique<Tuple>();
+    for (const auto &datum: tuple)
+        result->push_back(datum->clone());
+    return result;
+}
+
 static string escapeString(const string &s, char delimiter) {
     string result;
     for (char c: s) {

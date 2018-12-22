@@ -15,9 +15,9 @@ template class AggSum<long long>;
 vector<TupleP> ExecNode::eval() {
     vector<TupleP> result;
     while (true) {
-        TupleP next = nextTuple();
+        Tuple* next = nextTuple();
         if (next) {
-            result.push_back(move(next));
+            result.push_back(cloneTuple(*next));
         } else {
             break;
         }
@@ -60,7 +60,7 @@ void AggFuncCall::addResult(Datum &state, Tuple &tuple) {
 std::vector<TupleP> ExecAgg::eval() {
     map<TupleP, TupleP, compareTupleP> aggState;
 
-    TupleP tuple;
+    Tuple *tuple;
     while ((tuple = child->nextTuple())) {
         TupleP groupKey = getGroupKey(*tuple);
         auto it = aggState.find(groupKey);
@@ -103,13 +103,13 @@ std::vector<TupleP> ExecAgg::eval() {
     return result;
 }
 
-TupleP ExecAgg::nextTuple() {
+Tuple* ExecAgg::nextTuple() {
     if (!tuplesCalculated) {
         tuples = eval();
         tuplesCalculated = true;
     }
     if (nextTupleIndex < tuples.size())
-        return move(tuples[nextTupleIndex++]);
+        return tuples[nextTupleIndex++].get();
     return NULL;
 }
 
@@ -121,15 +121,15 @@ TupleP ExecAgg::getGroupKey(const Tuple &tuple) {
 }
 
 /* ExecScan */
-TupleP ExecScan::nextTuple() {
+Tuple* ExecScan::nextTuple() {
     if (nextTupleIndex < tuples.size())
-        return move(tuples[nextTupleIndex++]);
+        return tuples[nextTupleIndex++].get();
     return NULL;
 }
 
 /* ExecFilter */
-TupleP ExecFilter::nextTuple() {
-    TupleP tuple;
+Tuple* ExecFilter::nextTuple() {
+    Tuple* tuple;
     while ((tuple = child->nextTuple())) {
         Datum *exprResult = expr->eval(*tuple);
         auto exprResultBool = static_cast<const BoolDatum *>(exprResult);
@@ -141,14 +141,14 @@ TupleP ExecFilter::nextTuple() {
 }
 
 /* ExecProject */
-TupleP ExecProject::nextTuple() {
-    TupleP tuple = child->nextTuple();
+Tuple* ExecProject::nextTuple() {
+    Tuple* tuple = child->nextTuple();
     if (!tuple)
         return NULL;
-    TupleP resultTuple = make_unique<Tuple>();
+    lastTuple = make_unique<Tuple>();
     for (const auto &expr: exprs) {
         DatumP v = expr->eval(*tuple)->clone();
-        resultTuple->push_back(move(v));
+        lastTuple->push_back(move(v));
     }
-    return resultTuple;
+    return lastTuple.get();
 }

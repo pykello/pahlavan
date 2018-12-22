@@ -118,5 +118,6 @@ std::string tupleToString(const Tuple& tuple, char delimiter=',');
 TupleP tupleFromString(const std::string &s, const Schema &schema, char delimiter=',');
 std::vector<TupleP> parseTuples(const std::string* data, int row_count,
                                 const Schema &schema, char delimiter=',');
+TupleP cloneTuple(const Tuple &tuple);
 
 #endif

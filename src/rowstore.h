@@ -14,7 +14,7 @@ struct RowStore {
 class ExecNode {
 public:
     virtual std::vector<TupleP> eval();
-    virtual TupleP nextTuple() = 0;
+    virtual Tuple* nextTuple() = 0;
 };
 
 class AggFunc {
@@ -58,7 +58,7 @@ public:
             std::vector<std::unique_ptr<AggFuncCall>> aggs):
                 child(std::move(child)), groupBy(groupBy), aggs(std::move(aggs)) {}
     std::vector<TupleP> eval() override;
-    TupleP nextTuple() override;
+    Tuple* nextTuple() override;
 private:
     std::unique_ptr<ExecNode> child;
     std::vector<int> groupBy;
@@ -73,7 +73,7 @@ private:
 class ExecScan: public ExecNode {
 public:
     ExecScan(std::vector<TupleP> tuples): tuples(std::move(tuples)) {}
-    TupleP nextTuple() override;
+    Tuple* nextTuple() override;
 private:
     std::vector<TupleP> tuples;
     int nextTupleIndex = 0;
@@ -84,7 +84,7 @@ public:
     ExecFilter(std::unique_ptr<ExecNode> child,
                std::unique_ptr<Expr> expr):
                     child(std::move(child)), expr(std::move(expr)) {}
-    TupleP nextTuple() override;
+    Tuple* nextTuple() override;
 private:
     std::unique_ptr<ExecNode> child;
     std::unique_ptr<Expr> expr;
@@ -95,10 +95,11 @@ public:
     ExecProject(std::unique_ptr<ExecNode> child,
                 std::vector<std::unique_ptr<Expr>> exprs):
                     child(std::move(child)), exprs(std::move(exprs)) {}
-    TupleP nextTuple() override;
+    Tuple* nextTuple() override;
 private:
     std::unique_ptr<ExecNode> child;
     std::vector<std::unique_ptr<Expr>> exprs;
+    TupleP lastTuple;
 };
 
 #endif
