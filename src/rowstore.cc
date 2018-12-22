@@ -60,7 +60,8 @@ void AggFuncCall::addResult(Datum &state, Tuple &tuple) {
 std::vector<TupleP> ExecAgg::eval() {
     map<TupleP, TupleP, compareTupleP> aggState;
 
-    for (auto const &tuple: child->eval()) {
+    TupleP tuple;
+    while ((tuple = child->nextTuple())) {
         TupleP groupKey = getGroupKey(*tuple);
         auto it = aggState.find(groupKey);
         /*
