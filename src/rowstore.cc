@@ -11,6 +11,20 @@ template class AggSum<int>;
 template class AggSum<double>;
 template class AggSum<long long>;
 
+/* Exec Node */
+vector<TupleP> ExecNode::eval() {
+    vector<TupleP> result;
+    while (true) {
+        TupleP next = nextTuple();
+        if (next) {
+            result.push_back(move(next));
+        } else {
+            break;
+        }
+    }
+    return result;
+}
+
 /* AggSum */
 template <class inputType>
 DatumP AggSum<inputType>::init() {
@@ -88,6 +102,16 @@ std::vector<TupleP> ExecAgg::eval() {
     return result;
 }
 
+TupleP ExecAgg::nextTuple() {
+    if (!tuplesCalculated) {
+        tuples = eval();
+        tuplesCalculated = true;
+    }
+    if (nextTupleIndex < tuples.size())
+        return move(tuples[nextTupleIndex++]);
+    return NULL;
+}
+
 TupleP ExecAgg::getGroupKey(const Tuple &tuple) {
     TupleP key = make_unique<Tuple>();
     for (int idx: groupBy)
@@ -96,32 +120,33 @@ TupleP ExecAgg::getGroupKey(const Tuple &tuple) {
 }
 
 /* ExecScan */
-vector<TupleP> ExecScan::eval() {
-    return move(tuples);
+TupleP ExecScan::nextTuple() {
+    if (nextTupleIndex < tuples.size())
+        return move(tuples[nextTupleIndex++]);
+    return NULL;
 }
 
 /* ExecFilter */
-vector<TupleP> ExecFilter::eval() {
-    vector<TupleP> result;
-    for (TupleP &tuple: child->eval()) {
+TupleP ExecFilter::nextTuple() {
+    TupleP tuple;
+    while ((tuple = child->nextTuple())) {
         unique_ptr<Datum> exprResult = expr->eval(*tuple);
         auto exprResultBool = static_cast<const BoolDatum *>(exprResult.get());
         if (exprResultBool->value) {
-            result.push_back(move(tuple));
+            return tuple;
         }
-    } 
-    return result;
+    }
+    return NULL;
 }
 
 /* ExecProject */
-vector<TupleP> ExecProject::eval() {
-    vector<TupleP> result;
-    for (TupleP &tuple: child->eval()) {
-        TupleP resultTuple = make_unique<Tuple>();
-        for (const auto &expr: exprs) {
-            resultTuple->push_back(expr->eval(*tuple));
-        }
-        result.push_back(move(resultTuple));
-    } 
-    return result;
+TupleP ExecProject::nextTuple() {
+    TupleP tuple = child->nextTuple();
+    if (!tuple)
+        return NULL;
+    TupleP resultTuple = make_unique<Tuple>();
+    for (const auto &expr: exprs) {
+        resultTuple->push_back(expr->eval(*tuple));
+    }
+    return resultTuple;
 }

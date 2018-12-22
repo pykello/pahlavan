@@ -120,7 +120,7 @@ TEST_CASE( "tupleFromString, test all data types", "[tuples]" ) {
 TEST_CASE ( "tupleToString, basic test", "[tuples]" ) {
     Schema schema { TYPE_INT, TYPE_TEXT, TYPE_DECIMAL, TYPE_BIGINT, TYPE_DATE,
                     TYPE_BOOL };
-    string tupleStr = "1,hey there!,1e+10,12345678901,2012-04-23,1";
+    string tupleStr = "1,hey there!,10000000000.00,12345678901,2012-04-23,1";
     TupleP tuple = tupleFromString(tupleStr, schema);
     REQUIRE ( tupleToString(*tuple) == tupleStr );
 }
