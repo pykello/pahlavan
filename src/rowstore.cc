@@ -131,8 +131,8 @@ TupleP ExecScan::nextTuple() {
 TupleP ExecFilter::nextTuple() {
     TupleP tuple;
     while ((tuple = child->nextTuple())) {
-        unique_ptr<Datum> exprResult = expr->eval(*tuple);
-        auto exprResultBool = static_cast<const BoolDatum *>(exprResult.get());
+        Datum *exprResult = expr->eval(*tuple);
+        auto exprResultBool = static_cast<const BoolDatum *>(exprResult);
         if (exprResultBool->value) {
             return tuple;
         }
@@ -147,7 +147,8 @@ TupleP ExecProject::nextTuple() {
         return NULL;
     TupleP resultTuple = make_unique<Tuple>();
     for (const auto &expr: exprs) {
-        resultTuple->push_back(expr->eval(*tuple));
+        DatumP v = expr->eval(*tuple)->clone();
+        resultTuple->push_back(move(v));
     }
     return resultTuple;
 }

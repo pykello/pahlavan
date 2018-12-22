@@ -7,14 +7,14 @@
 
 class Expr {
 public:
-    virtual std::unique_ptr<Datum> eval(const Tuple &tuple) = 0;
+    virtual Datum *eval(const Tuple &tuple) = 0;
 };
 
 class ConstExpr: public Expr {
 public:
     ConstExpr(std::unique_ptr<Datum> val): val(std::move(val)) {}
-    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
-        return val->clone();
+    Datum *eval(const Tuple &tuple) override {
+        return val.get();
     }
 
     static std::unique_ptr<ConstExpr> makeInt(int value) {
@@ -36,8 +36,8 @@ private:
 class VarExpr: public Expr {
 public:
     VarExpr(int varIndex): varIndex(varIndex) {}
-    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
-        return tuple[varIndex]->clone();
+    Datum *eval(const Tuple &tuple) override {
+        return tuple[varIndex].get();
     }
 
     static std::unique_ptr<VarExpr> make(int attr) {
@@ -53,11 +53,11 @@ public:
              std::unique_ptr<Expr> right):
                 left(std::move(left)), right(std::move(right)) {}
 
-    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+    Datum *eval(const Tuple &tuple) override {
         auto leftResult = left->eval(tuple);
         auto rightResult = right->eval(tuple);
-        std::unique_ptr<Datum> result = leftResult->multiply(*rightResult);
-        return result;
+        lastResult = move(leftResult->multiply(*rightResult));
+        return lastResult.get();
     }
 
     static std::unique_ptr<MultExpr> make(std::unique_ptr<Expr> left,
@@ -66,6 +66,7 @@ public:
     }
 private:
     std::unique_ptr<Expr> left, right;
+    std::unique_ptr<Datum> lastResult;
 };
 
 enum CompareOp {
@@ -76,13 +77,16 @@ enum CompareOp {
     GT
 };
 
+static std::unique_ptr<BoolDatum> True = std::make_unique<BoolDatum>(true);
+static std::unique_ptr<BoolDatum> False = std::make_unique<BoolDatum>(false);
+
 class CompareExpr: public Expr {
 public:
     CompareExpr(std::unique_ptr<Expr> left,
                 std::unique_ptr<Expr> right, CompareOp op):
                     left(std::move(left)), right(std::move(right)), op(op) {}
 
-    virtual std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+    virtual Datum *eval(const Tuple &tuple) override {
         auto lv = left->eval(tuple), rv = right->eval(tuple);
         bool leftIsLess = *lv < *rv;
         bool rightIsLess = *rv < *lv;
@@ -105,7 +109,7 @@ public:
                 result = rightIsLess;
                 break;
         }
-        return std::make_unique<BoolDatum>(result);
+        return result ? True.get() : False.get();
     }
 
     static std::unique_ptr<CompareExpr> make(std::unique_ptr<Expr> left,
@@ -124,11 +128,11 @@ public:
     AndExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right):
         left(std::move(left)), right(std::move(right)) {}
 
-    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+    Datum *eval(const Tuple &tuple) override {
         auto lv = left->eval(tuple), rv = right->eval(tuple);
-        auto *leftBool = static_cast<const BoolDatum *>(lv.get());
-        auto *rightBool = static_cast<const BoolDatum *>(rv.get());
-        return std::make_unique<BoolDatum>(leftBool->value && rightBool->value);
+        auto *leftBool = static_cast<const BoolDatum *>(lv);
+        auto *rightBool = static_cast<const BoolDatum *>(rv);
+        return (leftBool->value && rightBool->value) ? True.get() : False.get();
     }
 
     static std::unique_ptr<AndExpr> make(std::unique_ptr<Expr> left,
@@ -146,11 +150,11 @@ public:
     OrExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right):
         left(std::move(left)), right(std::move(right)) {}
 
-    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+    Datum *eval(const Tuple &tuple) override {
         auto lv = left->eval(tuple), rv = right->eval(tuple);
-        auto *leftBool = static_cast<const BoolDatum *>(lv.get());
-        auto *rightBool = static_cast<const BoolDatum *>(rv.get());
-        return std::make_unique<BoolDatum>(leftBool->value || rightBool->value);
+        auto *leftBool = static_cast<const BoolDatum *>(lv);
+        auto *rightBool = static_cast<const BoolDatum *>(rv);
+        return (leftBool->value || rightBool->value) ? True.get() : False.get();
     }
 
 private:
@@ -161,10 +165,10 @@ class NotExpr: public Expr {
 public:
     NotExpr(std::unique_ptr<Expr> child): child(std::move(child)) {}
 
-    std::unique_ptr<Datum> eval(const Tuple &tuple) override {
+    Datum *eval(const Tuple &tuple) override {
         auto cv = child->eval(tuple);
-        auto *childBool = static_cast<const BoolDatum *>(cv.get());
-        return std::make_unique<BoolDatum>(!childBool->value);
+        auto *childBool = static_cast<const BoolDatum *>(cv);
+        return (!childBool->value) ? True.get() : False.get();
     }
 
 private:
