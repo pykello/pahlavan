@@ -68,6 +68,7 @@ private:
     int nextTupleIndex = 0;
 
     TupleP getGroupKey(const Tuple &tuple);
+    std::vector<TupleP> evalSingleGroup();
 };
 
 class ExecScan: public ExecNode {
@@ -100,6 +101,16 @@ private:
     std::unique_ptr<ExecNode> child;
     std::vector<std::unique_ptr<Expr>> exprs;
     TupleP lastTuple;
+};
+
+class ExecCount: public ExecNode {
+public:
+    ExecCount(std::unique_ptr<ExecNode> child): child(std::move(child)) {}
+    Tuple* nextTuple() override;
+private:
+    std::unique_ptr<ExecNode> child;
+    Tuple result;
+    bool evaluated = false;
 };
 
 #endif

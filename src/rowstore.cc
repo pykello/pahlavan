@@ -58,6 +58,8 @@ void AggFuncCall::addResult(Datum &state, Tuple &tuple) {
 
 /* ExecAgg */
 std::vector<TupleP> ExecAgg::eval() {
+    if (groupBy.size() == 0)
+        return evalSingleGroup();
     map<TupleP, TupleP, compareTupleP> aggState;
 
     Tuple *tuple;
@@ -100,6 +102,26 @@ std::vector<TupleP> ExecAgg::eval() {
         }
         result.push_back(move(resultTuple));
     }
+    return result;
+}
+
+vector<TupleP> ExecAgg::evalSingleGroup() {
+    TupleP state = make_unique<Tuple>();
+    for (const auto &agg: aggs)
+        state->push_back(agg->init());
+    Tuple *tuple;
+    while (tuple = child->nextTuple()) {
+        for (int i = 0; i < aggs.size(); i++) {
+            aggs[i]->aggregate(*((*state)[i]), *tuple);
+        }
+    }
+    TupleP resultTuple = make_unique<Tuple>();
+    for (int i = 0; i < aggs.size(); i++) {
+        Datum &s = *((*state)[i]);
+        aggs[i]->addResult(s, *resultTuple);
+    }
+    std::vector<TupleP> result;
+    result.push_back(move(resultTuple));
     return result;
 }
 
@@ -151,4 +173,17 @@ Tuple* ExecProject::nextTuple() {
         lastTuple->push_back(move(v));
     }
     return lastTuple.get();
+}
+
+/* ExecCount */
+Tuple* ExecCount::nextTuple() {
+    if (evaluated)
+        return NULL;
+    int count = 0;
+    while (child->nextTuple()) {
+        count++;
+    }
+    result.push_back(make_unique<IntDatum>(count));
+    evaluated = true;
+    return &result;
 }
